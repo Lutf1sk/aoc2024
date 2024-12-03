@@ -128,9 +128,56 @@ void day2(lstr_t input_path) {
 	lt_printf("total safe (dampened): %uq\n", safe_dampened);
 }
 
+void day3(lstr_t input_path) {
+	void* input_data = NULL;
+	usz input_len = 0;
+	if LT_UNLIKELY (lt_fmapallp(input_path, &input_data, &input_len)) {
+		lt_ferrf("failed to memory map input file '%S'\n", input_path);
+	}
+
+	u64 total = 0;
+	u64 mult = 1;
+
+	for (char* it = input_data, *end = it + input_len; it < end; ++it) {
+		u64 n0, n1;
+		char* p = it + 4;
+
+		lstr_t remain = lt_lsfrom_range(it, end);
+		if (lt_lsprefix(remain, CLSTR("do()"))) {
+			mult = 1;
+			continue;
+		}
+		if (lt_lsprefix(remain, CLSTR("don't()"))) {
+			mult = 0;
+			continue;
+		}
+
+		if (!lt_lsprefix(remain, CLSTR("mul(")))
+			continue;
+
+		char* nstart = p;
+		while (p < end && lt_is_digit(*p))
+			++p;
+		if (p >= end || *p != ',' || p - nstart > 3 || lt_lstou(lt_lsfrom_range(nstart, p), &n0))
+			continue;
+		++p;
+
+		nstart = p;
+		while (p < end && lt_is_digit(*p))
+			++p;
+		if (p >= end || *p != ')' || p - nstart > 3 || lt_lstou(lt_lsfrom_range(nstart, p), &n1))
+			continue;
+
+		total += n0 * n1 * mult;
+	}
+
+	lt_printf("total: %uq\n", total);
+}
+
 int main(int argc, char** argv) {
 	//day1(CLSTR("input1.txt"));
-	day2(CLSTR("input2.txt"));
+	//day2(CLSTR("input2.txt"));
+	day3(CLSTR("input3.txt"));
 	return 0;
 }
 
