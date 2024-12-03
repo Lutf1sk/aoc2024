@@ -136,7 +136,8 @@ void day3(lstr_t input_path) {
 	}
 
 	u64 total = 0;
-	u64 mult = 1;
+	u64 total_enabled = 0;
+	u64 enabled_mult = 1;
 
 	for (char* it = input_data, *end = it + input_len; it < end; ++it) {
 		u64 n0, n1;
@@ -144,11 +145,11 @@ void day3(lstr_t input_path) {
 
 		lstr_t remain = lt_lsfrom_range(it, end);
 		if (lt_lsprefix(remain, CLSTR("do()"))) {
-			mult = 1;
+			enabled_mult = 1;
 			continue;
 		}
 		if (lt_lsprefix(remain, CLSTR("don't()"))) {
-			mult = 0;
+			enabled_mult = 0;
 			continue;
 		}
 
@@ -168,10 +169,12 @@ void day3(lstr_t input_path) {
 		if (p >= end || *p != ')' || p - nstart > 3 || lt_lstou(lt_lsfrom_range(nstart, p), &n1))
 			continue;
 
-		total += n0 * n1 * mult;
+		total += n0 * n1;
+		total_enabled += n0 * n1 * enabled_mult;
 	}
 
 	lt_printf("total: %uq\n", total);
+	lt_printf("total (enabled): %uq\n", total_enabled);
 }
 
 int main(int argc, char** argv) {
