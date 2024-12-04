@@ -177,10 +177,58 @@ void day3(lstr_t input_path) {
 	lt_printf("total (enabled): %uq\n", total_enabled);
 }
 
+void day4(lstr_t input_path) {
+	void* input_data = NULL;
+	usz input_len = 0;
+	if LT_UNLIKELY (lt_fmapallp(input_path, &input_data, &input_len)) {
+		lt_ferrf("failed to memory map input file '%S'\n", input_path);
+	}
+
+	usz w = 141, h = 140;
+	usz occurence_total = 0;
+	usz x_mas_occurences = 0;
+
+	char* pline = input_data;
+	for (usz i = 0; i < h; ++i) {
+		for (char* it = pline, *line_end = it + w - 1; it < line_end; ++it) {
+			usz wrem = line_end - it;
+			usz hrem = h - i;
+
+			if (wrem >= 4 && (!memcmp(it, "XMAS", 4) || !memcmp(it, "SAMX", 4)))
+				++occurence_total;
+			if (hrem >= 4 && ((it[w*0] == 'X' && it[w*1] == 'M' && it[w*2] == 'A' && it[w*3] == 'S') || (it[w*0] == 'S' && it[w*1] == 'A' && it[w*2] == 'M' && it[w*3] == 'X')))
+				++occurence_total;
+			if (wrem >= 4 && hrem >= 4 && ((it[w*0+0] == 'X' && it[w*1+1] == 'M' && it[w*2+2] == 'A' && it[w*3+3] == 'S') || (it[w*0+0] == 'S' && it[w*1+1] == 'A' && it[w*2+2] == 'M' && it[w*3+3] == 'X')))
+				++occurence_total;
+			if ((it - pline) >= 3 && hrem >= 4 && ((it[w*0-0] == 'X' && it[w*1-1] == 'M' && it[w*2-2] == 'A' && it[w*3-3] == 'S') || (it[w*0-0] == 'S' && it[w*1-1] == 'A' && it[w*2-2] == 'M' && it[w*3-3] == 'X')))
+				++occurence_total;
+
+			if (wrem < 3 || hrem < 3)
+				continue;
+
+			if (
+				((it[w*0+0] == 'M' && it[w*1+1] == 'A' && it[w*2+2] == 'S') ||
+				 (it[w*0+0] == 'S' && it[w*1+1] == 'A' && it[w*2+2] == 'M')) &&
+				((it[w*2+0] == 'M' && it[w*1+1] == 'A' && it[w*0+2] == 'S') ||
+				 (it[w*2+0] == 'S' && it[w*1+1] == 'A' && it[w*0+2] == 'M')))
+			{
+				++x_mas_occurences;
+			}
+
+		}
+
+		pline += w;
+	}
+
+	lt_printf("total: %uz\n", occurence_total);
+	lt_printf("total (x-mas): %uz\n", x_mas_occurences);
+}
+
 int main(int argc, char** argv) {
 	//day1(CLSTR("input1.txt"));
 	//day2(CLSTR("input2.txt"));
-	day3(CLSTR("input3.txt"));
+	//day3(CLSTR("input3.txt"));
+	day4(CLSTR("input4.txt"));
 	return 0;
 }
 
