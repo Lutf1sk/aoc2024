@@ -234,7 +234,7 @@ void day5(lstr_t input_path) {
 	usz rule_count = 0;
 	u8 rules[4096][2];
 
-	char* it = input_data, *end = input_data + input_len;
+	char* it = input_data, *end = it + input_len;
 	while (it < end && *it != '\n') {
 		u64 r0, r1;
 		if LT_UNLIKELY (lt_lstou(LSTR(it, 2), &r0) || lt_lstou(LSTR(it + 3, 2), &r1))
@@ -292,12 +292,64 @@ void day5(lstr_t input_path) {
 	lt_printf("total (fixed): %uq\n", total_fixed);
 }
 
+void day6(lstr_t input_path) {
+	void* input_data = NULL;
+	usz input_len = 0;
+	if LT_UNLIKELY (lt_fmapallp(input_path, &input_data, &input_len)) {
+		lt_ferrf("failed to memory map input file '%S'\n", input_path);
+	}
+
+	usz w = 131, h = 130;
+	char* map = input_data;
+	b8 walked[130][130];
+	lt_mzero(walked, sizeof(walked));
+
+	usz guard_x = -1, guard_y = -1;
+	for (usz x = 0; x < w - 1; ++x) {
+		for (usz y = 0; y < h; ++y) {
+			if (map[y*w+x] == '^') {
+				guard_x = x;
+				guard_y = y;
+				goto guard_found;
+			}
+		}
+	}
+guard_found:;
+
+	u8 dir = 0;
+	i8 xadv_tab[4] = { 0, 1, 0, -1 };
+	i8 yadv_tab[4] = { -1, 0, 1, 0 };
+
+	walked[guard_y][guard_x] = 1;
+	do {
+		usz next_x, next_y;
+		for (;;) {
+			next_x = guard_x + xadv_tab[dir];
+			next_y = guard_y + yadv_tab[dir];
+			if (map[next_y*w + next_x] != '#')
+				break;
+			dir = (dir + 1) & 0x03;
+		}
+		guard_x = next_x;
+		guard_y = next_y;
+		walked[guard_y][guard_x] = 1;
+	} while (guard_x > 0 && guard_x < w - 1 && guard_y > 0 && guard_y < h);
+
+	usz total_walked = 0;
+	for (b8* it = (b8*)walked, *end = it + sizeof(walked); it < end; ++it) {
+		total_walked += *it;
+	}
+
+	lt_printf("%uz\n", total_walked);
+}
+
 int main(int argc, char** argv) {
 	//day1(CLSTR("input1.txt"));
 	//day2(CLSTR("input2.txt"));
 	//day3(CLSTR("input3.txt"));
 	//day4(CLSTR("input4.txt"));
-	day5(CLSTR("input5.txt"));
+	//day5(CLSTR("input5.txt"));
+	day6(CLSTR("input6.txt"));
 	return 0;
 }
 
