@@ -224,11 +224,80 @@ void day4(lstr_t input_path) {
 	lt_printf("total (x-mas): %uz\n", x_mas_occurences);
 }
 
+void day5(lstr_t input_path) {
+	void* input_data = NULL;
+	usz input_len = 0;
+	if LT_UNLIKELY (lt_fmapallp(input_path, &input_data, &input_len)) {
+		lt_ferrf("failed to memory map input file '%S'\n", input_path);
+	}
+	
+	usz rule_count = 0;
+	u8 rules[4096][2];
+
+	char* it = input_data, *end = input_data + input_len;
+	while (it < end && *it != '\n') {
+		u64 r0, r1;
+		if LT_UNLIKELY (lt_lstou(LSTR(it, 2), &r0) || lt_lstou(LSTR(it + 3, 2), &r1))
+			lt_ferrf("failed to parse integer\n");
+		rules[rule_count][0] = r0;
+		rules[rule_count++][1] = r1;
+		it += 6;
+	}
+	++it;
+
+	usz total = 0;
+	usz total_fixed = 0;
+	while (it < end && *it != '\n') {
+		usz page_count = 0;
+		u64 pages[128];
+
+		while (it < end) {
+			if LT_UNLIKELY (lt_lstou(LSTR(it, 2), pages + page_count++))
+				lt_ferrf("failed to parse integer\n");
+			it += 2;
+			if (*it++ == '\n')
+				break;
+		}
+
+		for (usz i = 0; i < page_count; ++i) {
+			for (usz j = i + 1; j < page_count; ++j) {
+				for (usz k = 0; k < rule_count; ++k) {
+					if (rules[k][1] == pages[i] && rules[k][0] == pages[j]) {
+						goto invalid;
+					}
+				}
+			}
+		}
+		total += pages[page_count >> 1];
+		continue;
+
+	invalid:
+		for (usz i = 0; i < page_count; ++i) {
+			for (usz j = i + 1; j < page_count; ++j) {
+				for (usz k = 0; k < rule_count; ++k) {
+					if (rules[k][1] == pages[i] && rules[k][0] == pages[j]) {
+						u8 p = pages[i];
+						pages[i] = pages[j];
+						pages[j] = p;
+						--k;
+						break;
+					}
+				}
+			}
+		}
+
+		total_fixed += pages[page_count >> 1];
+	}
+	lt_printf("total: %uq\n", total);
+	lt_printf("total (fixed): %uq\n", total_fixed);
+}
+
 int main(int argc, char** argv) {
 	//day1(CLSTR("input1.txt"));
 	//day2(CLSTR("input2.txt"));
 	//day3(CLSTR("input3.txt"));
-	day4(CLSTR("input4.txt"));
+	//day4(CLSTR("input4.txt"));
+	day5(CLSTR("input5.txt"));
 	return 0;
 }
 
